@@ -1,0 +1,47 @@
+{
+	"env": {
+		"browser": true
+	},
+	"extends": [
+		"eslint:recommended",
+		"plugin:@typescript-eslint/recommended-type-checked",
+		"plugin:@typescript-eslint/stylistic-type-checked",
+		"plugin:react/recommended",
+		"plugin:react/jsx-runtime",
+		"plugin:react-hooks/recommended",
+		"plugin:prettier/recommended"
+	],
+	"parserOptions": {
+		"project": true,
+		"ecmaVersion": "latest",
+		"sourceType": "module"
+	},
+	"plugins": ["import", "react-refresh"],
+	"root": true,
+	"rules": {
+		"@typescript-eslint/consistent-type-assertions": "warn",
+		"@typescript-eslint/consistent-type-imports": "warn",
+		"import/order": [
+			"error",
+			{
+				"alphabetize": {
+					"order": "asc"
+				}
+			}
+		],
+		"react-refresh/only-export-components": "warn"
+	},
+	"settings": {
+		"react": {
+			"version": "detect"
+		}
+	},
+	"overrides": [
+		{
+			"files": ["vite.config.ts"],
+			"parserOptions": {
+				"project": "./tsconfig.node.json"
+			}
+		}
+	]
+}

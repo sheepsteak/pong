@@ -1,0 +1,39 @@
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	height: 100%;
+}
+
+:global body,
+:global #root {
+	background-color: black;
+	margin: 0;
+	height: 100%;
+	padding: 0;
+}
+
+.game-outer {
+	align-items: center;
+	display: flex;
+	height: 100%;
+	justify-content: center;
+	margin: 0;
+	width: 100%;
+}
+
+.game-inner {
+	--aspect-ratio-width: 1;
+	--aspect-ratio-height: 1;
+
+	aspect-ratio: var(--aspect-ratio-width) / var(--aspect-ratio-height);
+	border: 1px solid white;
+	height: calc(var(--aspect-ratio-height) / var(--aspect-ratio-width) * 100vw);
+	max-height: 100vh;
+	max-width: calc(
+		var(--aspect-ratio-width) / var(--aspect-ratio-height) * 100vh
+	);
+}
