@@ -33,11 +33,11 @@ interface PaddleState {
 }
 
 export const Game: FC<Props> = ({ inputManager }) => {
-	const [leftPaddle, setLeftPaddlePosition] = useState<PaddleState>(() => ({
+	const [leftPaddle, setLeftPaddle] = useState<PaddleState>(() => ({
 		position: vector2Create(PADDLE_WIDTH / 2, PADDLE_HEIGHT / 2),
 		score: 0,
 	}));
-	const [rightPaddle] = useState<PaddleState>(() => ({
+	const [rightPaddle, setRightPaddle] = useState<PaddleState>(() => ({
 		position: vector2Create(GAME_WIDTH - PADDLE_WIDTH / 2, PADDLE_HEIGHT / 2),
 		score: 0,
 	}));
@@ -113,7 +113,24 @@ export const Game: FC<Props> = ({ inputManager }) => {
 			newBallVelocity.x *= -1;
 		}
 
-		if (newBallPosition.x < 0 || newBallPosition.x > GAME_WIDTH) {
+		let roundOver = false;
+
+		if (newBallPosition.x < 0 - BALL_RADIUS) {
+			roundOver = true;
+			setRightPaddle((rightPaddle) => ({
+				...rightPaddle,
+				score: rightPaddle.score + 1,
+			}));
+		}
+		if (newBallPosition.x > GAME_WIDTH + BALL_RADIUS) {
+			roundOver = true;
+			setLeftPaddle((leftPaddle) => ({
+				...leftPaddle,
+				score: leftPaddle.score + 1,
+			}));
+		}
+
+		if (roundOver) {
 			newBallPosition.x = GAME_WIDTH / 2;
 			newBallPosition.y = GAME_HEIGHT / 2;
 			const newDirection = getRandomDirection();
@@ -126,7 +143,7 @@ export const Game: FC<Props> = ({ inputManager }) => {
 			velocity: newBallVelocity,
 		});
 
-		setLeftPaddlePosition((leftPaddle) => ({
+		setLeftPaddle((leftPaddle) => ({
 			...leftPaddle,
 			position: newLeftPaddlePosition,
 		}));
