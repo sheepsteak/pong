@@ -1,5 +1,6 @@
 import { useTick } from "@pixi/react";
 import { useState, type FC } from "react";
+import { Ball } from "./ball";
 import { GAME_HEIGHT, GAME_WIDTH } from "./contants";
 import { Divider } from "./divider";
 import { InputContext } from "./input/context";
@@ -8,6 +9,7 @@ import { Player } from "./player";
 import type { Vector2 } from "./vector2";
 import { vector2Copy, vector2Create } from "./vector2";
 
+const BALL_RADIUS = 10;
 const PADDLE_WIDTH = 20;
 const PADDLE_HEIGHT = 100;
 
@@ -21,6 +23,9 @@ export const Game: FC<Props> = ({ inputManager }) => {
 	);
 	const [rightPaddlePosition] = useState<Vector2>(
 		vector2Create(GAME_WIDTH - PADDLE_WIDTH / 2, PADDLE_HEIGHT / 2),
+	);
+	const [ballPosition] = useState<Vector2>(
+		vector2Create(GAME_WIDTH / 2, GAME_HEIGHT / 2),
 	);
 
 	useTick((delta) => {
@@ -58,6 +63,7 @@ export const Game: FC<Props> = ({ inputManager }) => {
 				height={PADDLE_HEIGHT}
 				width={PADDLE_WIDTH}
 			/>
+			<Ball position={ballPosition} radius={BALL_RADIUS} />
 		</InputContext.Provider>
 	);
 };
