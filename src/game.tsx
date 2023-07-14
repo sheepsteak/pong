@@ -27,17 +27,17 @@ interface BallState {
 	velocity: Vector2;
 }
 
-interface PaddleState {
+interface PlayerState {
 	position: Vector2;
 	score: number;
 }
 
 export const Game: FC<Props> = ({ inputManager }) => {
-	const [leftPaddle, setLeftPaddle] = useState<PaddleState>(() => ({
+	const [leftPlayer, setLeftPlayer] = useState<PlayerState>(() => ({
 		position: vector2Create(PADDLE_WIDTH / 2, PADDLE_HEIGHT / 2),
 		score: 0,
 	}));
-	const [rightPaddle, setRightPaddle] = useState<PaddleState>(() => ({
+	const [rightPlayer, setRightPlayer] = useState<PlayerState>(() => ({
 		position: vector2Create(GAME_WIDTH - PADDLE_WIDTH / 2, PADDLE_HEIGHT / 2),
 		score: 0,
 	}));
@@ -47,7 +47,7 @@ export const Game: FC<Props> = ({ inputManager }) => {
 	}));
 
 	useTick((delta) => {
-		const newLeftPaddlePosition = vector2Copy(leftPaddle.position);
+		const newLeftPaddlePosition = vector2Copy(leftPlayer.position);
 
 		if (inputManager.keys.KeyW) {
 			newLeftPaddlePosition.y -= PADDLE_SPEED * delta;
@@ -96,8 +96,8 @@ export const Game: FC<Props> = ({ inputManager }) => {
 		);
 
 		const rightPaddleCollisionRect = rectangleCreate(
-			rightPaddle.position.x - PADDLE_WIDTH / 2,
-			rightPaddle.position.y - PADDLE_HEIGHT / 2,
+			rightPlayer.position.x - PADDLE_WIDTH / 2,
+			rightPlayer.position.y - PADDLE_HEIGHT / 2,
 			PADDLE_WIDTH,
 			PADDLE_HEIGHT,
 		);
@@ -117,14 +117,14 @@ export const Game: FC<Props> = ({ inputManager }) => {
 
 		if (newBallPosition.x < 0 - BALL_RADIUS) {
 			roundOver = true;
-			setRightPaddle((rightPaddle) => ({
+			setRightPlayer((rightPaddle) => ({
 				...rightPaddle,
 				score: rightPaddle.score + 1,
 			}));
 		}
 		if (newBallPosition.x > GAME_WIDTH + BALL_RADIUS) {
 			roundOver = true;
-			setLeftPaddle((leftPaddle) => ({
+			setLeftPlayer((leftPaddle) => ({
 				...leftPaddle,
 				score: leftPaddle.score + 1,
 			}));
@@ -143,7 +143,7 @@ export const Game: FC<Props> = ({ inputManager }) => {
 			velocity: newBallVelocity,
 		});
 
-		setLeftPaddle((leftPaddle) => ({
+		setLeftPlayer((leftPaddle) => ({
 			...leftPaddle,
 			position: newLeftPaddlePosition,
 		}));
@@ -153,23 +153,23 @@ export const Game: FC<Props> = ({ inputManager }) => {
 		<InputContext.Provider value={inputManager}>
 			<Divider />
 			<Paddle
-				position={leftPaddle.position}
+				position={leftPlayer.position}
 				height={PADDLE_HEIGHT}
 				width={PADDLE_WIDTH}
 			/>
 			<Paddle
-				position={rightPaddle.position}
+				position={rightPlayer.position}
 				height={PADDLE_HEIGHT}
 				width={PADDLE_WIDTH}
 			/>
 			<Ball position={ball.position} radius={BALL_RADIUS} />
 			<Score
 				position={vector2Create(GAME_WIDTH / 2 - 60, 50)}
-				value={leftPaddle.score}
+				value={leftPlayer.score}
 			/>
 			<Score
 				position={vector2Create(GAME_WIDTH / 2 + 60, 50)}
-				value={rightPaddle.score}
+				value={rightPlayer.score}
 			/>
 		</InputContext.Provider>
 	);
