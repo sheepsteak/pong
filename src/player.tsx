@@ -1,12 +1,12 @@
 import { Graphics } from "@pixi/react";
 import type { FC } from "react";
+import type { Vector2 } from "./vector2";
 
 export interface Props {
-	x: number;
-	y: number;
+	position: Vector2;
 }
 
-export const Player: FC<Props> = ({ x, y }) => {
+export const Player: FC<Props> = ({ position }) => {
 	return (
 		<Graphics
 			anchor={{ x: 0.5, y: 0.5 }}
@@ -15,8 +15,8 @@ export const Player: FC<Props> = ({ x, y }) => {
 				g.drawRect(-10, -50, 20, 100);
 				g.endFill();
 			}}
-			x={x}
-			y={y}
+			x={position.x}
+			y={position.y}
 		/>
 	);
 };
