@@ -26,35 +26,42 @@ interface BallState {
 	velocity: Vector2;
 }
 
+interface PaddleState {
+	position: Vector2;
+	score: number;
+}
+
 export const Game: FC<Props> = ({ inputManager }) => {
-	const [leftPaddlePosition, setLeftPaddlePosition] = useState<Vector2>(
-		vector2Create(PADDLE_WIDTH / 2, PADDLE_HEIGHT / 2),
-	);
-	const [rightPaddlePosition] = useState<Vector2>(
-		vector2Create(GAME_WIDTH - PADDLE_WIDTH / 2, PADDLE_HEIGHT / 2),
-	);
+	const [leftPaddle, setLeftPaddlePosition] = useState<PaddleState>(() => ({
+		position: vector2Create(PADDLE_WIDTH / 2, PADDLE_HEIGHT / 2),
+		score: 0,
+	}));
+	const [rightPaddle] = useState<PaddleState>(() => ({
+		position: vector2Create(GAME_WIDTH - PADDLE_WIDTH / 2, PADDLE_HEIGHT / 2),
+		score: 0,
+	}));
 	const [ball, setBall] = useState<BallState>(() => ({
 		position: vector2Create(GAME_WIDTH / 2, GAME_HEIGHT / 2),
 		velocity: getRandomDirection(),
 	}));
 
 	useTick((delta) => {
-		const newPosition = vector2Copy(leftPaddlePosition);
+		const newLeftPaddlePosition = vector2Copy(leftPaddle.position);
 
 		if (inputManager.keys.KeyW) {
-			newPosition.y -= PADDLE_SPEED * delta;
+			newLeftPaddlePosition.y -= PADDLE_SPEED * delta;
 		}
 
 		if (inputManager.keys.KeyS) {
-			newPosition.y += PADDLE_SPEED * delta;
+			newLeftPaddlePosition.y += PADDLE_SPEED * delta;
 		}
 
-		if (newPosition.y < PADDLE_HEIGHT / 2) {
-			newPosition.y = PADDLE_HEIGHT / 2;
+		if (newLeftPaddlePosition.y < PADDLE_HEIGHT / 2) {
+			newLeftPaddlePosition.y = PADDLE_HEIGHT / 2;
 		}
 
-		if (newPosition.y > GAME_HEIGHT - PADDLE_HEIGHT / 2) {
-			newPosition.y = GAME_HEIGHT - PADDLE_HEIGHT / 2;
+		if (newLeftPaddlePosition.y > GAME_HEIGHT - PADDLE_HEIGHT / 2) {
+			newLeftPaddlePosition.y = GAME_HEIGHT - PADDLE_HEIGHT / 2;
 		}
 
 		const newBallPosition = vector2Copy(ball.position);
@@ -81,15 +88,15 @@ export const Game: FC<Props> = ({ inputManager }) => {
 		);
 
 		const leftPaddleCollisionRect = rectangleCreate(
-			leftPaddlePosition.x - PADDLE_WIDTH / 2,
-			leftPaddlePosition.y - PADDLE_HEIGHT / 2,
+			newLeftPaddlePosition.x - PADDLE_WIDTH / 2,
+			newLeftPaddlePosition.y - PADDLE_HEIGHT / 2,
 			PADDLE_WIDTH,
 			PADDLE_HEIGHT,
 		);
 
 		const rightPaddleCollisionRect = rectangleCreate(
-			rightPaddlePosition.x - PADDLE_WIDTH / 2,
-			rightPaddlePosition.y - PADDLE_HEIGHT / 2,
+			rightPaddle.position.x - PADDLE_WIDTH / 2,
+			rightPaddle.position.y - PADDLE_HEIGHT / 2,
 			PADDLE_WIDTH,
 			PADDLE_HEIGHT,
 		);
@@ -118,19 +125,22 @@ export const Game: FC<Props> = ({ inputManager }) => {
 			velocity: newBallVelocity,
 		});
 
-		setLeftPaddlePosition(newPosition);
+		setLeftPaddlePosition((leftPaddle) => ({
+			...leftPaddle,
+			position: newLeftPaddlePosition,
+		}));
 	});
 
 	return (
 		<InputContext.Provider value={inputManager}>
 			<Divider />
 			<Paddle
-				position={leftPaddlePosition}
+				position={leftPaddle.position}
 				height={PADDLE_HEIGHT}
 				width={PADDLE_WIDTH}
 			/>
 			<Paddle
-				position={rightPaddlePosition}
+				position={rightPaddle.position}
 				height={PADDLE_HEIGHT}
 				width={PADDLE_WIDTH}
 			/>
