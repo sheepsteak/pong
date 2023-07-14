@@ -12,6 +12,7 @@ import { vector2Copy, vector2Create } from "./vector2";
 const BALL_RADIUS = 10;
 const PADDLE_WIDTH = 20;
 const PADDLE_HEIGHT = 100;
+const PADDLE_SPEED = 5;
 
 export interface Props {
 	inputManager: InputManager;
@@ -32,11 +33,11 @@ export const Game: FC<Props> = ({ inputManager }) => {
 		const newPosition = vector2Copy(leftPaddlePosition);
 
 		if (inputManager.keys.KeyW) {
-			newPosition.y -= 5 * delta;
+			newPosition.y -= PADDLE_SPEED * delta;
 		}
 
 		if (inputManager.keys.KeyS) {
-			newPosition.y += 5 * delta;
+			newPosition.y += PADDLE_SPEED * delta;
 		}
 
 		if (newPosition.y < PADDLE_HEIGHT / 2) {
