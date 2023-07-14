@@ -3,6 +3,16 @@ export interface Vector2 {
 	y: number;
 }
 
+export const vector2Add = (a: Vector2, b: Vector2): Vector2 => ({
+	x: a.x + b.x,
+	y: a.y + b.y,
+});
+
+export const vector2Copy = (vector: Vector2): Vector2 => ({
+	x: vector.x,
+	y: vector.y,
+});
+
 export const vector2Create = (x = 0, y = 0): Vector2 => ({
 	x,
 	y,

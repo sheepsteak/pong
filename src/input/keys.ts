@@ -211,8 +211,8 @@ export const createInputManager = (root: HTMLElement): InputManager => {
 	root.addEventListener("mousedown", mouseDownHandler);
 	root.addEventListener("mouseup", mouseUpHandler);
 	root.addEventListener("wheel", mouseWheelHandler);
-	root.addEventListener("keydown", keyDownHandler);
-	root.addEventListener("keyup", keyUpHandler);
+	document.addEventListener("keydown", keyDownHandler);
+	document.addEventListener("keyup", keyUpHandler);
 
 	return inputManager;
 };
