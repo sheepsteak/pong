@@ -5,7 +5,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from "./contants";
 import { Divider } from "./divider";
 import { InputContext } from "./input/context";
 import type { InputManager } from "./input/keys";
-import { Player } from "./player";
+import { Paddle } from "./paddle";
 import type { Vector2 } from "./vector2";
 import { vector2Copy, vector2Create } from "./vector2";
 
@@ -53,12 +53,12 @@ export const Game: FC<Props> = ({ inputManager }) => {
 	return (
 		<InputContext.Provider value={inputManager}>
 			<Divider />
-			<Player
+			<Paddle
 				position={leftPaddlePosition}
 				height={PADDLE_HEIGHT}
 				width={PADDLE_WIDTH}
 			/>
-			<Player
+			<Paddle
 				position={rightPaddlePosition}
 				height={PADDLE_HEIGHT}
 				width={PADDLE_WIDTH}

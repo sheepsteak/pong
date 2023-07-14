@@ -8,7 +8,7 @@ export interface Props {
 	width: number;
 }
 
-export const Player: FC<Props> = ({ position, height, width }) => {
+export const Paddle: FC<Props> = ({ position, height, width }) => {
 	return (
 		<Graphics
 			draw={(g) => {
