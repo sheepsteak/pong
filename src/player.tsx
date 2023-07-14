@@ -4,19 +4,22 @@ import type { Vector2 } from "./vector2";
 
 export interface Props {
 	position: Vector2;
+	height: number;
+	width: number;
 }
 
-export const Player: FC<Props> = ({ position }) => {
+export const Player: FC<Props> = ({ position, height, width }) => {
 	return (
 		<Graphics
-			anchor={{ x: 0.5, y: 0.5 }}
 			draw={(g) => {
 				g.beginFill("#fff");
-				g.drawRect(-10, -50, 20, 100);
+				g.drawRect(-(width / 2), -(height / 2), width, height);
 				g.endFill();
 			}}
 			x={position.x}
 			y={position.y}
+			width={width}
+			height={height}
 		/>
 	);
 };

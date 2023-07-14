@@ -8,16 +8,19 @@ import { Player } from "./player";
 import type { Vector2 } from "./vector2";
 import { vector2Copy, vector2Create } from "./vector2";
 
+const PADDLE_WIDTH = 20;
+const PADDLE_HEIGHT = 100;
+
 export interface Props {
 	inputManager: InputManager;
 }
 
 export const Game: FC<Props> = ({ inputManager }) => {
 	const [leftPaddlePosition, setLeftPaddlePosition] = useState<Vector2>(
-		vector2Create(10, 50),
+		vector2Create(PADDLE_WIDTH / 2, PADDLE_HEIGHT / 2),
 	);
 	const [rightPaddlePosition] = useState<Vector2>(
-		vector2Create(GAME_WIDTH - 10, 50),
+		vector2Create(GAME_WIDTH - PADDLE_WIDTH / 2, PADDLE_HEIGHT / 2),
 	);
 
 	useTick((delta) => {
@@ -31,12 +34,12 @@ export const Game: FC<Props> = ({ inputManager }) => {
 			newPosition.y += 5 * delta;
 		}
 
-		if (newPosition.y < 50) {
-			newPosition.y = 50;
+		if (newPosition.y < PADDLE_HEIGHT / 2) {
+			newPosition.y = PADDLE_HEIGHT / 2;
 		}
 
-		if (newPosition.y > GAME_HEIGHT - 50) {
-			newPosition.y = GAME_HEIGHT - 50;
+		if (newPosition.y > GAME_HEIGHT - PADDLE_HEIGHT / 2) {
+			newPosition.y = GAME_HEIGHT - PADDLE_HEIGHT / 2;
 		}
 
 		setLeftPaddlePosition(newPosition);
@@ -45,8 +48,16 @@ export const Game: FC<Props> = ({ inputManager }) => {
 	return (
 		<InputContext.Provider value={inputManager}>
 			<Divider />
-			<Player position={leftPaddlePosition} />
-			<Player position={rightPaddlePosition} />
+			<Player
+				position={leftPaddlePosition}
+				height={PADDLE_HEIGHT}
+				width={PADDLE_WIDTH}
+			/>
+			<Player
+				position={rightPaddlePosition}
+				height={PADDLE_HEIGHT}
+				width={PADDLE_WIDTH}
+			/>
 		</InputContext.Provider>
 	);
 };
