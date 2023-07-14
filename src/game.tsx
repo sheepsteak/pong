@@ -48,6 +48,7 @@ export const Game: FC<Props> = ({ inputManager }) => {
 
 	useTick((delta) => {
 		const newLeftPaddlePosition = vector2Copy(leftPlayer.position);
+		const newRightPaddlePosition = vector2Copy(rightPlayer.position);
 
 		if (inputManager.keys.KeyW) {
 			newLeftPaddlePosition.y -= PADDLE_SPEED * delta;
@@ -63,6 +64,18 @@ export const Game: FC<Props> = ({ inputManager }) => {
 
 		if (newLeftPaddlePosition.y > GAME_HEIGHT - PADDLE_HEIGHT / 2) {
 			newLeftPaddlePosition.y = GAME_HEIGHT - PADDLE_HEIGHT / 2;
+		}
+
+		if (inputManager.keys.ArrowUp) {
+			newRightPaddlePosition.y -= PADDLE_SPEED * delta;
+		}
+
+		if (inputManager.keys.ArrowDown) {
+			newRightPaddlePosition.y += PADDLE_SPEED * delta;
+		}
+
+		if (newRightPaddlePosition.y < PADDLE_HEIGHT / 2) {
+			newRightPaddlePosition.y = PADDLE_HEIGHT / 2;
 		}
 
 		const newBallPosition = vector2Copy(ball.position);
@@ -96,8 +109,8 @@ export const Game: FC<Props> = ({ inputManager }) => {
 		);
 
 		const rightPaddleCollisionRect = rectangleCreate(
-			rightPlayer.position.x - PADDLE_WIDTH / 2,
-			rightPlayer.position.y - PADDLE_HEIGHT / 2,
+			newRightPaddlePosition.x - PADDLE_WIDTH / 2,
+			newRightPaddlePosition.y - PADDLE_HEIGHT / 2,
 			PADDLE_WIDTH,
 			PADDLE_HEIGHT,
 		);
@@ -143,9 +156,13 @@ export const Game: FC<Props> = ({ inputManager }) => {
 			velocity: newBallVelocity,
 		});
 
-		setLeftPlayer((leftPaddle) => ({
-			...leftPaddle,
+		setLeftPlayer((player) => ({
+			...player,
 			position: newLeftPaddlePosition,
+		}));
+		setRightPlayer((player) => ({
+			...player,
+			position: newRightPaddlePosition,
 		}));
 	});
 
