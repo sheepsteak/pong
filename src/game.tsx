@@ -8,6 +8,7 @@ import type { InputManager } from "./input/keys";
 import { getRandomAngle } from "./math";
 import { Paddle } from "./paddle";
 import { rectangleCreate, rectangleIntersects } from "./rectangle";
+import { Score } from "./score";
 import type { Vector2 } from "./vector2";
 import { vector2Copy, vector2Create, vector2Normalize } from "./vector2";
 
@@ -145,6 +146,14 @@ export const Game: FC<Props> = ({ inputManager }) => {
 				width={PADDLE_WIDTH}
 			/>
 			<Ball position={ball.position} radius={BALL_RADIUS} />
+			<Score
+				position={vector2Create(GAME_WIDTH / 2 - 60, 50)}
+				value={leftPaddle.score}
+			/>
+			<Score
+				position={vector2Create(GAME_WIDTH / 2 + 60, 50)}
+				value={rightPaddle.score}
+			/>
 		</InputContext.Provider>
 	);
 };
