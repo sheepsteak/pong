@@ -1,6 +1,7 @@
 import { useTick } from "@pixi/react";
 import { useState, type FC } from "react";
 import { GAME_HEIGHT, GAME_WIDTH } from "./contants";
+import { Divider } from "./divider";
 import { InputContext } from "./input/context";
 import type { InputManager } from "./input/keys";
 import { Player } from "./player";
@@ -43,6 +44,7 @@ export const Game: FC<Props> = ({ inputManager }) => {
 
 	return (
 		<InputContext.Provider value={inputManager}>
+			<Divider />
 			<Player position={leftPaddlePosition} />
 			<Player position={rightPaddlePosition} />
 		</InputContext.Provider>
