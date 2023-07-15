@@ -1,5 +1,9 @@
 import { useTick } from "@pixi/react";
+import * as Sound from "@pixi/sound";
 import { useState, type FC } from "react";
+import ballPaddleAudio from "./assets/sounds/ball-paddle.mp3";
+import ballWallAudio from "./assets/sounds/ball-wall.mp3";
+import scoreAudio from "./assets/sounds/score.mp3";
 import { Ball } from "./ball";
 import { GAME_WIDTH, GAME_HEIGHT } from "./contants";
 import { Divider } from "./divider";
@@ -26,6 +30,16 @@ interface PlayerState {
 	position: Vector2;
 	score: number;
 }
+
+const ballPaddleSound = Sound.Sound.from({
+	url: ballPaddleAudio,
+});
+const ballWallSound = Sound.Sound.from({
+	url: ballWallAudio,
+});
+const scoreSound = Sound.Sound.from({
+	url: scoreAudio,
+});
 
 export const PlayState: FC = () => {
 	const input = useInput();
@@ -80,14 +94,21 @@ export const PlayState: FC = () => {
 		newBallPosition.x += newBallVelocity.x * BALL_SPEED * delta;
 		newBallPosition.y += newBallVelocity.y * BALL_SPEED * delta;
 
+		let ballBounce = false;
 		if (newBallPosition.y < BALL_RADIUS) {
 			newBallPosition.y = BALL_RADIUS;
 			newBallVelocity.y *= -1;
+			ballBounce = true;
 		}
 
 		if (newBallPosition.y > GAME_HEIGHT - BALL_RADIUS) {
 			newBallPosition.y = GAME_HEIGHT - BALL_RADIUS;
 			newBallVelocity.y *= -1;
+			ballBounce = true;
+		}
+
+		if (ballBounce) {
+			void ballWallSound.play();
 		}
 
 		const ballCollisionRect = rectangleCreate(
@@ -111,15 +132,23 @@ export const PlayState: FC = () => {
 			PADDLE_HEIGHT,
 		);
 
+		let ballPaddleBounce = false;
+
 		if (rectangleIntersects(ballCollisionRect, leftPaddleCollisionRect)) {
 			newBallPosition.x =
 				leftPaddleCollisionRect.x + leftPaddleCollisionRect.width + BALL_RADIUS;
 			newBallVelocity.x *= -1;
+			ballPaddleBounce = true;
 		}
 
 		if (rectangleIntersects(ballCollisionRect, rightPaddleCollisionRect)) {
 			newBallPosition.x = rightPaddleCollisionRect.x - BALL_RADIUS;
 			newBallVelocity.x *= -1;
+			ballPaddleBounce = true;
+		}
+
+		if (ballPaddleBounce) {
+			void ballPaddleSound.play();
 		}
 
 		let roundOver = false;
@@ -140,6 +169,7 @@ export const PlayState: FC = () => {
 		}
 
 		if (roundOver) {
+			void scoreSound.play();
 			newBallPosition.x = GAME_WIDTH / 2;
 			newBallPosition.y = GAME_HEIGHT / 2;
 			const newDirection = getRandomDirection();
