@@ -1,3 +1,4 @@
+import "@pixi/events";
 import { Stage } from "@pixi/react";
 import ReactDOM from "react-dom/client";
 import { GAME_HEIGHT, GAME_WIDTH } from "./contants.ts";
@@ -16,6 +17,7 @@ ReactDOM.createRoot(root).render(
 			width={GAME_WIDTH}
 			options={{
 				autoDensity: false,
+				eventMode: "passive",
 			}}
 		>
 			<Game inputManager={inputManager} />
