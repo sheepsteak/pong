@@ -1,19 +1,25 @@
 import { useTick } from "@pixi/react";
 import * as Sound from "@pixi/sound";
-import { useState, type FC } from "react";
+import { Bodies, Body, Composite, Engine, Events } from "matter-js";
+import { useEffect, useState, type FC } from "react";
 import ballPaddleAudio from "./assets/sounds/ball-paddle.mp3";
 import ballWallAudio from "./assets/sounds/ball-wall.mp3";
 import scoreAudio from "./assets/sounds/score.mp3";
 import { Ball } from "./ball";
-import { GAME_WIDTH, GAME_HEIGHT } from "./contants";
+import { GAME_HEIGHT, GAME_WIDTH } from "./contants";
 import { Divider } from "./divider";
 import { useInput } from "./input/hooks";
 import { getRandomAngle } from "./math";
 import { Paddle } from "./paddle";
-import { rectangleCreate, rectangleIntersects } from "./rectangle";
+import { usePhysics } from "./physics/hooks";
 import { Score } from "./score";
 import type { Vector2 } from "./vector2";
-import { vector2Create, vector2Copy, vector2Normalize } from "./vector2";
+import {
+	vector2Copy,
+	vector2Create,
+	vector2Normalize,
+	vector2Scale,
+} from "./vector2";
 
 const BALL_RADIUS = 10;
 const BALL_SPEED_INITIAL = 5;
@@ -24,7 +30,6 @@ const PADDLE_SPEED = 5;
 interface BallState {
 	position: Vector2;
 	speed: number;
-	velocity: Vector2;
 }
 
 interface PlayerState {
@@ -43,7 +48,56 @@ const scoreSound = Sound.Sound.from({
 });
 
 export const PlayState: FC = () => {
+	const physicsEngine = usePhysics();
 	const input = useInput();
+	const [ballBody] = useState<Body>(() =>
+		Bodies.circle(GAME_WIDTH / 2, GAME_HEIGHT / 2, BALL_RADIUS, {
+			force: getRandomDirection(),
+			friction: 0,
+			frictionStatic: 0,
+			frictionAir: 0,
+			inertia: Infinity,
+			label: "ball",
+			restitution: 1,
+		}),
+	);
+	const [leftPlayerBody] = useState<Body>(() =>
+		Bodies.rectangle(
+			0 + PADDLE_WIDTH / 2,
+			GAME_HEIGHT / 2,
+			PADDLE_WIDTH,
+			PADDLE_HEIGHT,
+			{
+				friction: 0,
+				frictionAir: 0,
+				frictionStatic: 0,
+				inertia: Infinity,
+				isStatic: true,
+				label: "leftPlayer",
+				restitution: 1,
+			},
+		),
+	);
+	const [rightPlayerBody] = useState<Body>(() =>
+		Bodies.rectangle(
+			GAME_WIDTH - PADDLE_WIDTH / 2,
+			GAME_HEIGHT / 2,
+			PADDLE_WIDTH,
+			PADDLE_HEIGHT,
+			{
+				friction: 0,
+				frictionAir: 0,
+				frictionStatic: 0,
+				inertia: Infinity,
+				isStatic: true,
+				label: "rightPlayer",
+				restitution: 1,
+			},
+		),
+	);
+
+	const [shouldTick, setShouldTick] = useState(false);
+
 	const [leftPlayer, setLeftPlayer] = useState<PlayerState>(() => ({
 		position: vector2Create(PADDLE_WIDTH / 2, PADDLE_HEIGHT / 2),
 		score: 0,
@@ -55,116 +109,126 @@ export const PlayState: FC = () => {
 	const [ball, setBall] = useState<BallState>(() => ({
 		position: vector2Create(GAME_WIDTH / 2, GAME_HEIGHT / 2),
 		speed: BALL_SPEED_INITIAL,
-		velocity: getRandomDirection(),
 	}));
 
-	useTick((delta) => {
-		const newLeftPaddlePosition = vector2Copy(leftPlayer.position);
-		const newRightPaddlePosition = vector2Copy(rightPlayer.position);
+	useEffect(() => {
+		Composite.add(physicsEngine.world, [
+			Bodies.rectangle(GAME_WIDTH / 2, 0, GAME_WIDTH, 1, {
+				isStatic: true,
+				label: "top",
+				restitution: 1,
+			}),
+			Bodies.rectangle(GAME_WIDTH / 2, GAME_HEIGHT, GAME_WIDTH, 1, {
+				isStatic: true,
+				label: "bottom",
+				restitution: 1,
+			}),
+			ballBody,
+			leftPlayerBody,
+			rightPlayerBody,
+		]);
 
+		Events.on(physicsEngine, "collisionStart", ({ pairs }) => {
+			pairs.forEach(({ bodyA, bodyB }) => {
+				if (
+					(bodyA.label === "ball" && bodyB.label === "leftPlayer") ||
+					(bodyA.label === "leftPlayer" && bodyB.label === "ball") ||
+					(bodyA.label === "ball" && bodyB.label === "rightPlayer") ||
+					(bodyA.label === "rightPlayer" && bodyB.label === "ball")
+				) {
+					void ballPaddleSound.play();
+				}
+
+				if (
+					(bodyA.label === "top" && bodyB.label === "ball") ||
+					(bodyA.label === "ball" && bodyB.label === "top") ||
+					(bodyA.label === "bottom" && bodyB.label === "ball") ||
+					(bodyA.label === "ball" && bodyB.label === "bottom")
+				) {
+					void ballWallSound.play();
+				}
+			});
+		});
+
+		setShouldTick(true);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	useTick((delta) => {
+		if (!shouldTick) {
+			return;
+		}
+
+		// Left player
 		if (input.keys.KeyW) {
-			newLeftPaddlePosition.y -= PADDLE_SPEED * delta;
+			Body.setPosition(leftPlayerBody, {
+				x: leftPlayerBody.position.x,
+				y: leftPlayerBody.position.y - PADDLE_SPEED * delta,
+			});
 		}
 
 		if (input.keys.KeyS) {
-			newLeftPaddlePosition.y += PADDLE_SPEED * delta;
+			Body.setPosition(leftPlayerBody, {
+				x: leftPlayerBody.position.x,
+				y: leftPlayerBody.position.y + PADDLE_SPEED * delta,
+			});
 		}
 
-		if (newLeftPaddlePosition.y < PADDLE_HEIGHT / 2) {
-			newLeftPaddlePosition.y = PADDLE_HEIGHT / 2;
+		if (leftPlayerBody.position.y < PADDLE_HEIGHT / 2) {
+			Body.setPosition(leftPlayerBody, {
+				x: leftPlayerBody.position.x,
+				y: PADDLE_HEIGHT / 2,
+			});
 		}
 
-		if (newLeftPaddlePosition.y > GAME_HEIGHT - PADDLE_HEIGHT / 2) {
-			newLeftPaddlePosition.y = GAME_HEIGHT - PADDLE_HEIGHT / 2;
+		if (leftPlayerBody.position.y > GAME_HEIGHT - PADDLE_HEIGHT / 2) {
+			Body.setPosition(leftPlayerBody, {
+				x: leftPlayerBody.position.x,
+				y: GAME_HEIGHT - PADDLE_HEIGHT / 2,
+			});
 		}
 
+		// Right player
 		if (input.keys.ArrowUp) {
-			newRightPaddlePosition.y -= PADDLE_SPEED * delta;
+			Body.setPosition(rightPlayerBody, {
+				x: rightPlayerBody.position.x,
+				y: rightPlayerBody.position.y - PADDLE_SPEED * delta,
+			});
 		}
 
 		if (input.keys.ArrowDown) {
-			newRightPaddlePosition.y += PADDLE_SPEED * delta;
+			Body.setPosition(rightPlayerBody, {
+				x: rightPlayerBody.position.x,
+				y: rightPlayerBody.position.y + PADDLE_SPEED * delta,
+			});
 		}
 
-		if (newRightPaddlePosition.y < PADDLE_HEIGHT / 2) {
-			newRightPaddlePosition.y = PADDLE_HEIGHT / 2;
+		if (rightPlayerBody.position.y < PADDLE_HEIGHT / 2) {
+			Body.setPosition(rightPlayerBody, {
+				x: rightPlayerBody.position.x,
+				y: PADDLE_HEIGHT / 2,
+			});
 		}
 
-		const newBallPosition = vector2Copy(ball.position);
-		let newBallSpeed = ball.speed;
-		const newBallVelocity = vector2Copy(ball.velocity);
-
-		newBallPosition.x += newBallVelocity.x * ball.speed * delta;
-		newBallPosition.y += newBallVelocity.y * ball.speed * delta;
-
-		let ballBounce = false;
-		if (newBallPosition.y < BALL_RADIUS) {
-			newBallPosition.y = BALL_RADIUS;
-			newBallVelocity.y *= -1;
-			ballBounce = true;
+		if (rightPlayerBody.position.y > GAME_HEIGHT - PADDLE_HEIGHT / 2) {
+			Body.setPosition(rightPlayerBody, {
+				x: rightPlayerBody.position.x,
+				y: GAME_HEIGHT - PADDLE_HEIGHT / 2,
+			});
 		}
 
-		if (newBallPosition.y > GAME_HEIGHT - BALL_RADIUS) {
-			newBallPosition.y = GAME_HEIGHT - BALL_RADIUS;
-			newBallVelocity.y *= -1;
-			ballBounce = true;
-		}
-
-		if (ballBounce) {
-			void ballWallSound.play();
-		}
-
-		const ballCollisionRect = rectangleCreate(
-			newBallPosition.x - BALL_RADIUS,
-			newBallPosition.y - BALL_RADIUS,
-			BALL_RADIUS * 2,
-			BALL_RADIUS * 2,
-		);
-
-		const leftPaddleCollisionRect = rectangleCreate(
-			newLeftPaddlePosition.x - PADDLE_WIDTH / 2,
-			newLeftPaddlePosition.y - PADDLE_HEIGHT / 2,
-			PADDLE_WIDTH,
-			PADDLE_HEIGHT,
-		);
-
-		const rightPaddleCollisionRect = rectangleCreate(
-			newRightPaddlePosition.x - PADDLE_WIDTH / 2,
-			newRightPaddlePosition.y - PADDLE_HEIGHT / 2,
-			PADDLE_WIDTH,
-			PADDLE_HEIGHT,
-		);
-
-		let ballPaddleBounce = false;
-
-		if (rectangleIntersects(ballCollisionRect, leftPaddleCollisionRect)) {
-			newBallPosition.x =
-				leftPaddleCollisionRect.x + leftPaddleCollisionRect.width + BALL_RADIUS;
-			newBallVelocity.x *= -1;
-			ballPaddleBounce = true;
-		}
-
-		if (rectangleIntersects(ballCollisionRect, rightPaddleCollisionRect)) {
-			newBallPosition.x = rightPaddleCollisionRect.x - BALL_RADIUS;
-			newBallVelocity.x *= -1;
-			ballPaddleBounce = true;
-		}
-
-		if (ballPaddleBounce) {
-			newBallSpeed *= 1.25;
-			void ballPaddleSound.play();
-		}
+		Engine.update(physicsEngine, delta);
 
 		let roundOver = false;
 
-		if (newBallPosition.x < 0 - BALL_RADIUS) {
+		if (ballBody.position.x < 0 - BALL_RADIUS) {
 			roundOver = true;
 			setRightPlayer((rightPaddle) => ({
 				...rightPaddle,
 				score: rightPaddle.score + 1,
 			}));
 		}
-		if (newBallPosition.x > GAME_WIDTH + BALL_RADIUS) {
+		if (ballBody.position.x > GAME_WIDTH + BALL_RADIUS) {
 			roundOver = true;
 			setLeftPlayer((leftPaddle) => ({
 				...leftPaddle,
@@ -174,29 +238,47 @@ export const PlayState: FC = () => {
 
 		if (roundOver) {
 			void scoreSound.play();
-			newBallPosition.x = GAME_WIDTH / 2;
-			newBallPosition.y = GAME_HEIGHT / 2;
-			newBallSpeed = BALL_SPEED_INITIAL;
-			const newDirection = getRandomDirection();
-			newBallVelocity.x = newDirection.x;
-			newBallVelocity.y = newDirection.y;
+			Body.setVelocity(ballBody, vector2Create(0, 0));
+			Body.setPosition(ballBody, {
+				x: GAME_WIDTH / 2,
+				y: GAME_HEIGHT / 2,
+			});
+			Body.applyForce(ballBody, ballBody.position, getRandomDirection());
+			Body.setPosition(leftPlayerBody, {
+				x: 0 + PADDLE_WIDTH / 2,
+				y: GAME_HEIGHT / 2,
+			});
+			Body.setPosition(rightPlayerBody, {
+				x: GAME_WIDTH - PADDLE_WIDTH / 2,
+				y: GAME_HEIGHT / 2,
+			});
 		}
 
-		setBall({
-			position: newBallPosition,
-			speed: newBallSpeed,
-			velocity: newBallVelocity,
+		setBall((ball) => {
+			return {
+				...ball,
+				position: vector2Copy(ballBody.position),
+			};
 		});
 
-		setLeftPlayer((player) => ({
-			...player,
-			position: newLeftPaddlePosition,
-		}));
-		setRightPlayer((player) => ({
-			...player,
-			position: newRightPaddlePosition,
-		}));
+		setLeftPlayer((leftPlayer) => {
+			return {
+				...leftPlayer,
+				position: vector2Copy(leftPlayerBody.position),
+			};
+		});
+
+		setRightPlayer((rightPlayer) => {
+			return {
+				...rightPlayer,
+				position: vector2Copy(rightPlayerBody.position),
+			};
+		});
 	});
+
+	if (!shouldTick) {
+		return null;
+	}
 
 	return (
 		<>
@@ -227,5 +309,8 @@ export const PlayState: FC = () => {
 const getRandomDirection = (): Vector2 => {
 	const angle = getRandomAngle();
 
-	return vector2Normalize(vector2Create(Math.cos(angle), Math.sin(angle)));
+	return vector2Scale(
+		vector2Normalize(vector2Create(Math.cos(angle), Math.sin(angle))),
+		BALL_SPEED_INITIAL,
+	);
 };
