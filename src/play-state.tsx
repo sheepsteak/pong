@@ -16,13 +16,14 @@ import type { Vector2 } from "./vector2";
 import { vector2Create, vector2Copy, vector2Normalize } from "./vector2";
 
 const BALL_RADIUS = 10;
-const BALL_SPEED = 5;
+const BALL_SPEED_INITIAL = 5;
 const PADDLE_WIDTH = 20;
 const PADDLE_HEIGHT = 100;
 const PADDLE_SPEED = 5;
 
 interface BallState {
 	position: Vector2;
+	speed: number;
 	velocity: Vector2;
 }
 
@@ -53,6 +54,7 @@ export const PlayState: FC = () => {
 	}));
 	const [ball, setBall] = useState<BallState>(() => ({
 		position: vector2Create(GAME_WIDTH / 2, GAME_HEIGHT / 2),
+		speed: BALL_SPEED_INITIAL,
 		velocity: getRandomDirection(),
 	}));
 
@@ -89,10 +91,11 @@ export const PlayState: FC = () => {
 		}
 
 		const newBallPosition = vector2Copy(ball.position);
+		let newBallSpeed = ball.speed;
 		const newBallVelocity = vector2Copy(ball.velocity);
 
-		newBallPosition.x += newBallVelocity.x * BALL_SPEED * delta;
-		newBallPosition.y += newBallVelocity.y * BALL_SPEED * delta;
+		newBallPosition.x += newBallVelocity.x * ball.speed * delta;
+		newBallPosition.y += newBallVelocity.y * ball.speed * delta;
 
 		let ballBounce = false;
 		if (newBallPosition.y < BALL_RADIUS) {
@@ -148,6 +151,7 @@ export const PlayState: FC = () => {
 		}
 
 		if (ballPaddleBounce) {
+			newBallSpeed *= 1.25;
 			void ballPaddleSound.play();
 		}
 
@@ -172,6 +176,7 @@ export const PlayState: FC = () => {
 			void scoreSound.play();
 			newBallPosition.x = GAME_WIDTH / 2;
 			newBallPosition.y = GAME_HEIGHT / 2;
+			newBallSpeed = BALL_SPEED_INITIAL;
 			const newDirection = getRandomDirection();
 			newBallVelocity.x = newDirection.x;
 			newBallVelocity.y = newDirection.y;
@@ -179,6 +184,7 @@ export const PlayState: FC = () => {
 
 		setBall({
 			position: newBallPosition,
+			speed: newBallSpeed,
 			velocity: newBallVelocity,
 		});
 
