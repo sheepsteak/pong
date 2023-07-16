@@ -13,16 +13,17 @@ import { getRandomAngle } from "./math";
 import { Paddle } from "./paddle";
 import { usePhysics } from "./physics/hooks";
 import { Score } from "./score";
+import type { Player } from "./types";
 
 const BALL_RADIUS = 10;
 const BALL_SPEED_INITIAL = 5;
 const PADDLE_WIDTH = 20;
 const PADDLE_HEIGHT = 100;
 const PADDLE_SPEED = 5;
+const SCORE_TO_WIN = 11;
 
 interface BallState {
 	position: Vector;
-	speed: number;
 }
 
 interface PlayerState {
@@ -40,7 +41,11 @@ const scoreSound = Sound.Sound.from({
 	url: scoreAudio,
 });
 
-export const PlayState: FC = () => {
+export interface Props {
+	onGameOver: (winner: Player) => void;
+}
+
+export const PlayState: FC<Props> = ({ onGameOver }) => {
 	const physicsEngine = usePhysics();
 	const input = useInput();
 	const [ballBody] = useState<Body>(() =>
@@ -101,7 +106,6 @@ export const PlayState: FC = () => {
 	}));
 	const [ball, setBall] = useState<BallState>(() => ({
 		position: Vector.create(GAME_WIDTH / 2, GAME_HEIGHT / 2),
-		speed: BALL_SPEED_INITIAL,
 	}));
 
 	useEffect(() => {
@@ -213,24 +217,29 @@ export const PlayState: FC = () => {
 		Engine.update(physicsEngine, delta);
 
 		let roundOver = false;
+		let newLeftPlayerScore = leftPlayer.score;
+		let newRightPlayerScore = rightPlayer.score;
 
 		if (ballBody.position.x < 0 - BALL_RADIUS) {
 			roundOver = true;
-			setRightPlayer((rightPaddle) => ({
-				...rightPaddle,
-				score: rightPaddle.score + 1,
-			}));
+			newRightPlayerScore += 1;
 		}
 		if (ballBody.position.x > GAME_WIDTH + BALL_RADIUS) {
 			roundOver = true;
-			setLeftPlayer((leftPaddle) => ({
-				...leftPaddle,
-				score: leftPaddle.score + 1,
-			}));
+			newLeftPlayerScore += 1;
 		}
 
 		if (roundOver) {
 			void scoreSound.play();
+
+			if (newLeftPlayerScore === SCORE_TO_WIN) {
+				onGameOver("PLAYER1");
+			}
+
+			if (newRightPlayerScore === SCORE_TO_WIN) {
+				onGameOver("PLAYER2");
+			}
+
 			Body.setVelocity(ballBody, Vector.create(0, 0));
 			Body.setPosition(ballBody, {
 				x: GAME_WIDTH / 2,
@@ -247,25 +256,18 @@ export const PlayState: FC = () => {
 			});
 		}
 
-		setBall((ball) => {
-			return {
-				...ball,
-				position: Vector.clone(ballBody.position),
-			};
+		setBall({
+			position: Vector.clone(ballBody.position),
 		});
 
-		setLeftPlayer((leftPlayer) => {
-			return {
-				...leftPlayer,
-				position: Vector.clone(leftPlayerBody.position),
-			};
+		setLeftPlayer({
+			position: Vector.clone(leftPlayerBody.position),
+			score: newLeftPlayerScore,
 		});
 
-		setRightPlayer((rightPlayer) => {
-			return {
-				...rightPlayer,
-				position: Vector.clone(rightPlayerBody.position),
-			};
+		setRightPlayer({
+			position: Vector.clone(rightPlayerBody.position),
+			score: newRightPlayerScore,
 		});
 	});
 
