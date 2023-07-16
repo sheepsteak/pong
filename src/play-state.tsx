@@ -9,18 +9,20 @@ import { Ball } from "./ball";
 import { GAME_HEIGHT, GAME_WIDTH } from "./contants";
 import { Divider } from "./divider";
 import { useInput } from "./input/hooks";
-import { getRandomAngle } from "./math";
+import { getRandomNumber, toRadians } from "./math";
 import { Paddle } from "./paddle";
 import { usePhysics } from "./physics/hooks";
 import { Score } from "./score";
 import type { Player } from "./types";
 
 const BALL_RADIUS = 10;
-const BALL_SPEED_INITIAL = 5;
+const BALL_SPEED_INITIAL = 4;
 const PADDLE_WIDTH = 20;
 const PADDLE_HEIGHT = 100;
 const PADDLE_SPEED = 5;
 const SCORE_TO_WIN = 11;
+const MIN_ANGLE = toRadians(-60); // -60 degrees
+const MAX_ANGLE = toRadians(60); // 60 degrees
 
 interface BallState {
 	position: Vector;
@@ -302,7 +304,12 @@ export const PlayState: FC<Props> = ({ onGameOver }) => {
 };
 
 const getRandomDirection = (): Vector => {
-	const angle = getRandomAngle();
+	const sideOfCourt = Math.random() > 0.5 ? "left" : "right";
+	let angle = getRandomNumber(MAX_ANGLE, MIN_ANGLE);
+
+	if (sideOfCourt === "left") {
+		angle += Math.PI;
+	}
 
 	return Vector.mult(
 		Vector.normalise(Vector.create(Math.cos(angle), Math.sin(angle))),
