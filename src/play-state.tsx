@@ -230,7 +230,7 @@ export const PlayState: FC<Props> = ({ onGameOver }) => {
 		}
 
 		if (roundOver) {
-			void scoreSound.play();
+			void scoreSound.play({ volume: 0.25 });
 
 			if (newLeftPlayerScore === SCORE_TO_WIN) {
 				onGameOver("PLAYER1");
