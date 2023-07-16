@@ -1,14 +1,14 @@
 import { Text } from "@pixi/react";
+import type { Vector } from "matter-js";
 import { TextStyle } from "pixi.js";
 import type { FC } from "react";
-import type { Vector2 } from "./vector2";
 
 export interface Props {
-	position: Vector2;
+	position: Vector;
 	value: number;
 }
 
-const anchor: Vector2 = {
+const anchor: Vector = {
 	x: 0.5,
 	y: 0.5,
 };

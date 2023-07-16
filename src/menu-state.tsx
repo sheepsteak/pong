@@ -1,11 +1,11 @@
 import { Text, useTick } from "@pixi/react";
+import type { Vector } from "matter-js";
 import { TextStyle } from "pixi.js";
 import { useState, type FC } from "react";
 import { GAME_HEIGHT, GAME_WIDTH } from "./contants";
 import { useInput } from "./input/hooks";
-import type { Vector2 } from "./vector2";
 
-const anchor: Vector2 = {
+const anchor: Vector = {
 	x: 0.5,
 	y: 0.5,
 };

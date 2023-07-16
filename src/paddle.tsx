@@ -1,9 +1,9 @@
 import { Graphics } from "@pixi/react";
+import type { Vector } from "matter-js";
 import type { FC } from "react";
-import type { Vector2 } from "./vector2";
 
 export interface Props {
-	position: Vector2;
+	position: Vector;
 	height: number;
 	width: number;
 }
