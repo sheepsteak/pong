@@ -17,6 +17,7 @@ import type { Player } from "./types";
 
 const BALL_RADIUS = 10;
 const BALL_SPEED_INITIAL = 4;
+const BALL_SPEED_MULT = 1.1;
 const PADDLE_WIDTH = 20;
 const PADDLE_HEIGHT = 100;
 const PADDLE_SPEED = 5;
@@ -135,6 +136,9 @@ export const PlayState: FC<Props> = ({ onGameOver }) => {
 					(bodyA.label === "ball" && bodyB.label === "rightPlayer") ||
 					(bodyA.label === "rightPlayer" && bodyB.label === "ball")
 				) {
+					// @ts-expect-error no types for this
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+					Body.setSpeed(ballBody, ballBody.speed * BALL_SPEED_MULT);
 					void ballPaddleSound.play();
 				}
 
