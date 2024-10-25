@@ -28,14 +28,14 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          cache: yarn
+          cache: npm
           node-version-file: ".nvmrc"
       - name: Install
-        run: yarn --frozen-lockfile
+        run: npm ci --no-audit --prefer-offline
       - name: Lint
-        run: yarn lint
+        run: npm run lint
       - name: Build
-        run: yarn build
+        run: npm run build
       - name: Setup Pages
         if: contains(github.ref, 'refs/heads/master')
         uses: actions/configure-pages@v3

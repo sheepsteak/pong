@@ -5,13 +5,13 @@ Trying out [Pixi React](https://pixijs.io/pixi-react/) to make Pong.
 To run locally:
 
 ```sh
-yarn
-yarn dev
+npm install
+npm run dev
 ```
 
 To build:
 
 ```sh
-yarn
-yarn build
+npm install
+npm run build
 ```
